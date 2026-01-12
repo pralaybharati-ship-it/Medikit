@@ -1,0 +1,5 @@
+{
+  "name": "MediTrack - Hospital Visit Tracker",
+  "description": "A comprehensive patient management system designed for doctors to track consultations, diagnoses, and follow-ups across multiple hospitals using a clean, spreadsheet-like interface.",
+  "requestFramePermissions": []
+}
