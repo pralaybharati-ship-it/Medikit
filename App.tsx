@@ -4,7 +4,7 @@ import { RecordsTable } from './components/RecordsTable';
 import { Modal } from './components/Modal';
 import { DataService } from './services/dataService';
 import { Hospital, PatientRecord, SortField, SortOrder, FilterState } from './types';
-import { Plus, Search, Filter, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Search, Calendar as CalendarIcon, Trash2, Clipboard, Check } from 'lucide-react';
 
 const App: React.FC = () => {
   // --- State ---
@@ -15,7 +15,11 @@ const App: React.FC = () => {
   // UI State
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isHospitalModalOpen, setIsHospitalModalOpen] = useState(false);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  
   const [editingRecord, setEditingRecord] = useState<PatientRecord | null>(null);
+  const [summaryRecord, setSummaryRecord] = useState<PatientRecord | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
   
   // Filters & Sorting
   const [filters, setFilters] = useState<FilterState>({
@@ -27,7 +31,7 @@ const App: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('visitDate');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-  // Form States (Simplified for this file, ideally separate components)
+  // Form States
   const [recordForm, setRecordForm] = useState<Partial<PatientRecord>>({});
   const [hospitalForm, setHospitalForm] = useState<Partial<Hospital>>({});
 
@@ -153,6 +157,35 @@ const App: React.FC = () => {
     }
   };
 
+  // --- Summary Logic ---
+  const handleViewSummary = (record: PatientRecord) => {
+    setSummaryRecord(record);
+    setIsSummaryModalOpen(true);
+    setIsCopied(false);
+  };
+
+  const getSummaryText = () => {
+    if (!summaryRecord) return '';
+    const hospital = hospitals.find(h => h.id === summaryRecord.hospitalId);
+    return `PATIENT VISIT SUMMARY
+---------------------
+Date: ${summaryRecord.visitDate}
+Patient: ${summaryRecord.patientName} ${summaryRecord.phoneNumber ? `(${summaryRecord.phoneNumber})` : ''}
+Hospital: ${hospital?.name || 'Unknown'}
+
+Diagnosis: ${summaryRecord.diagnosis}
+Clinical Findings: ${summaryRecord.clinicalFindings}
+
+Next Visit: ${summaryRecord.nextVisitDate || 'Not scheduled'}
+Doctor's Comments: ${summaryRecord.doctorComments || 'None'}`;
+  };
+
+  const handleCopySummary = () => {
+    navigator.clipboard.writeText(getSummaryText());
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
@@ -240,6 +273,7 @@ const App: React.FC = () => {
             onEditRecord={handleEditRecord}
             onDeleteRecord={handleDeleteRecord}
             onQuickUpdate={handleQuickUpdate}
+            onViewSummary={handleViewSummary}
             sortField={sortField}
             sortOrder={sortOrder}
             onSort={handleSort}
@@ -446,11 +480,41 @@ const App: React.FC = () => {
         </div>
       </Modal>
 
+      {/* Summary Modal */}
+      <Modal
+        isOpen={isSummaryModalOpen}
+        onClose={() => setIsSummaryModalOpen(false)}
+        title="Patient Visit Summary"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-500">
+            Automatically generated summary based on visit details.
+          </p>
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-inner font-mono text-sm whitespace-pre-wrap text-slate-700">
+            {getSummaryText()}
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={() => setIsSummaryModalOpen(false)}
+              className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleCopySummary}
+              className={`flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg transition-colors shadow-sm ${
+                isCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-800 hover:bg-slate-900'
+              }`}
+            >
+              {isCopied ? <Check className="w-4 h-4" /> : <Clipboard className="w-4 h-4" />}
+              {isCopied ? 'Copied!' : 'Copy to Clipboard'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 };
-
-// Simple Trash Icon import fix for the Hospital Modal
-import { Trash2 } from 'lucide-react';
 
 export default App;

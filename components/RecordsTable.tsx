@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PatientRecord, Hospital } from '../types';
-import { Edit2, Trash2, Calendar, Phone, FileText, ChevronUp, ChevronDown, Check, X } from 'lucide-react';
+import { Edit2, Trash2, Calendar, Phone, FileText, ChevronUp, ChevronDown, Check, X, ClipboardList } from 'lucide-react';
 
 interface RecordsTableProps {
   records: PatientRecord[];
@@ -8,6 +8,7 @@ interface RecordsTableProps {
   onEditRecord: (record: PatientRecord) => void;
   onDeleteRecord: (id: string) => void;
   onQuickUpdate: (id: string, field: Partial<PatientRecord>) => void;
+  onViewSummary: (record: PatientRecord) => void;
   sortField: string;
   sortOrder: 'asc' | 'desc';
   onSort: (field: any) => void;
@@ -19,6 +20,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   onEditRecord,
   onDeleteRecord,
   onQuickUpdate,
+  onViewSummary,
   sortField,
   sortOrder,
   onSort
@@ -168,6 +170,13 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
 
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex justify-end space-x-2">
+                       <button 
+                        onClick={() => onViewSummary(record)}
+                        className="p-1.5 text-slate-500 hover:bg-slate-100 rounded transition-colors" 
+                        title="View Summary"
+                      >
+                        <ClipboardList className="w-4 h-4" />
+                      </button>
                       <button 
                         onClick={() => onEditRecord(record)}
                         className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors" 
